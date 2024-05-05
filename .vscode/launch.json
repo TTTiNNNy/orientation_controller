@@ -1,0 +1,78 @@
+{
+    /* 
+     * Requires the Rust Language Server (rust-analyzer) and Cortex-Debug extensions
+     * https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer
+     * https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug
+     */
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug (QEMU)",
+            "servertype": "qemu",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Cargo Build (debug)",
+            "runToEntryPoint": "main",
+            "executable": "./target/thumbv7m-none-eabi/debug/{{project-name}}",
+            /* Run `cargo build --example hello` and uncomment this line to run semi-hosting example */
+            //"executable": "./target/thumbv7m-none-eabi/debug/examples/hello",
+            "cpu": "cortex-m3",
+            "machine": "lm3s6965evb",
+        },
+        {
+            /* Configuration for the STM32F303 Discovery board */
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug (OpenOCD)",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Cargo Build (debug)",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "parsed",
+            "executable": "./target/thumbv7em-none-eabihf/debug/orientation_controller",
+            /* Run `cargo build --example itm` and uncomment this line to run itm example */
+            // "executable": "./target/thumbv7em-none-eabihf/debug/examples/itm",
+            "device": "nrf52840",
+            "configFiles": [
+                "${workspaceFolder}/openocd.cfg",
+                // "interface/cmsis-dap.cfg",
+                // "target/nrf52.cfg"
+            ],
+            "interface": "swd",
+            // "rttConfig": {
+            //     "enabled": true,
+            //     "address": "auto",
+            //     "clearSearch": false,
+            //     "polling_interval": 20,
+            //     "rtt_start_retry": 20000,
+            //     "decoders": [
+            //         {
+            //             "label": "RTT channel 0",
+            //             "port": 0,
+            //             "timestamp": true,
+            //             "type": "console"
+            //         }
+            //     ]
+            // },
+            "postLaunchCommands": [
+                "monitor rtt setup 0x20000038 0x30 \"SEGGER RTT\"",
+
+                "monitor rtt server start 8765 0",
+                // should span the *right* part of RAM
+                "monitor rtt start",
+            ],
+            
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 8000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    { "type": "console", "label": "ITM", "port": 1 }
+                ]
+            }
+        }
+    ]
+}

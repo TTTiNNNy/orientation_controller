@@ -11,10 +11,10 @@ async fn service_mems() {
     //let mut marg = mpu9250::Mpu9250::imu_default(spi, ncs, &mut delay)?;
     // to get all supported measurements:
     //let all = marg.all()?;
-    //println!("{:?}", all);    
+    //println!("{:?}", all);
     loop {
-    //    info!("DING DONG");
-        
+        //    info!("DING DONG");
+
         Timer::after_ticks(16000).await;
     }
 }
