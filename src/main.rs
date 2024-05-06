@@ -7,7 +7,8 @@ use cortex_m::asm;
 use cortex_m_rt::entry;
 use embassy_nrf::twim::{self, Twim};
 use libm::{fabs, fabsf, pow, sqrt, sqrtf};
-use orientation_controller::bsp::glue;
+use orientation_controller::{bsp, services};
+use bsp::glue;
 
 use core::borrow::Borrow;
 use core::future::poll_fn;
@@ -28,91 +29,6 @@ use icm20948_async;
 bind_interrupts!(struct Irqs {
     SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;
 });
-
-fn compliment_filter(c: f32, pair_values: (f32, f32)) -> f32 {
-    (pair_values.0 * c) + (pair_values.1 * (1.0 - c))
-}
-
-// fn axis_diff(accel: Vector3<f32>, gyro: Vector3<f32>, magn: Vector3<f32>) -> Vector3<f32>{
-
-//     Vector3{..Default::default()}
-// }
-
-#[embassy_executor::task]
-async fn orient_calc(mut mems: impl glue::mems::Mems + 'static) {
-    // #[embassy_executor::task]
-    // async fn orient_calc(p: impl) {
-
-    let mut angles = Vector3::new(0.0, 0.0, 0.0);
-
-    let mut now = Instant::now();
-
-    loop {
-        let mut mems_data = mems.read_axis_9().await;
-
-        match mems_data {
-            Ok(mut mems_data) => {
-                let dt: f32 = f32::from(Instant::elapsed(&now).as_millis() as u16) * 0.001;
-                now = Instant::now();
-                mems_data.acc.iter_mut().for_each(|el| {
-                    *el = el.to_degrees();
-                });
-
-                let accel_axis_len = sqrtf(
-                    (mems_data.acc[0] * mems_data.acc[0])
-                        + (mems_data.acc[1] * mems_data.acc[1])
-                        + (mems_data.acc[2] * mems_data.acc[2]),
-                );
-
-                mems_data.acc.iter_mut().for_each(|axi| {
-                    *axi /= accel_axis_len;
-                });
-
-                let accel_angles = [
-                    libm::acosf(mems_data.acc[0].into()).to_degrees(),
-                    libm::acosf(mems_data.acc[1].into()).to_degrees(),
-                    libm::acosf(mems_data.acc[2].into()).to_degrees(),
-                ];
-                let gyro_angles = [
-                    angles[0] + mems_data.gyr[0].to_degrees() * dt,
-                    angles[1] + mems_data.gyr[1].to_degrees() * dt,
-                    angles[2] + mems_data.gyr[2].to_degrees() * dt,
-                ];
-
-                gyro_angles
-                    .iter()
-                    .enumerate()
-                    .zip(accel_angles.iter())
-                    .for_each(|((i, &acc), &gyro)| {
-                        angles[i] = compliment_filter(
-                            0.96 + (fabsf(accel_axis_len - 1.0) * 0.04),
-                            (gyro, acc),
-                        )
-                    });
-
-                trace!("accel_axis_len: {}", accel_axis_len);
-
-                trace!(
-                    "accel x: {},\taccel y: {},\taccel z: {}",
-                    mems_data.acc[0],
-                    mems_data.acc[1],
-                    mems_data.acc[2]
-                );
-                trace!(
-                    "gyro x: {},\tgyro y: {},\tgyro z: {}",
-                    mems_data.gyr[0],
-                    mems_data.gyr[1],
-                    mems_data.gyr[2]
-                );
-                trace!("x: {},\ty: {},\tz: {}", angles[0], angles[1], angles[2]);
-
-                Timer::after_millis(1).await;
-            }
-
-            Err(err) => {}
-        }
-    }
-}
 
 #[embassy_executor::main]
 async fn init(spawner: Spawner) {
@@ -137,7 +53,7 @@ async fn init(spawner: Spawner) {
         .await
         .unwrap();
 
-    unwrap!(spawner.spawn(orient_calc(imu)));
+    unwrap!(spawner.spawn(services::mems::orient_calc(imu)));
     loop {
         Timer::after_millis(100).await;
     }
