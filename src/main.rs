@@ -3,12 +3,12 @@
 
 use {defmt_rtt as _, panic_probe as _};
 
+use bsp::glue;
 use cortex_m::asm;
 use cortex_m_rt::entry;
 use embassy_nrf::twim::{self, Twim};
 use libm::{fabs, fabsf, pow, sqrt, sqrtf};
 use orientation_controller::{bsp, services};
-use bsp::glue;
 
 use core::borrow::Borrow;
 use core::future::poll_fn;

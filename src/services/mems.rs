@@ -1,24 +1,26 @@
 use core::future::poll_fn;
 use core::task::Poll;
 
-use defmt::{trace};
+use crate::bsp::glue;
+use defmt::trace;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Sender};
 use embassy_time::{Instant, Timer};
-use nalgebra::Vector3;
 use libm::sqrtf;
-use crate::bsp::glue;
+use nalgebra::Vector3;
 
 fn compliment_filter(c: f32, pair_values: (f32, f32)) -> f32 {
     (pair_values.0 * c) + (pair_values.1 * (1.0 - c))
 }
 
-fn axis_degree_diff(prev_angles: &mut Vector3<f32>, mut accel: Vector3<f32>, gyro: Vector3<f32>, magn: Vector3<f32>, dt_s: f32){
-
-    let accel_axis_len = sqrtf(
-        (accel[0] * accel[0])
-            + (accel[1] * accel[1])
-            + (accel[2] * accel[2]),
-    );
+fn axis_degree_diff(
+    prev_angles: &mut Vector3<f32>,
+    mut accel: Vector3<f32>,
+    gyro: Vector3<f32>,
+    magn: Vector3<f32>,
+    dt_s: f32,
+) {
+    let accel_axis_len =
+        sqrtf((accel[0] * accel[0]) + (accel[1] * accel[1]) + (accel[2] * accel[2]));
 
     accel.iter_mut().for_each(|axi| {
         *axi /= accel_axis_len;
@@ -41,18 +43,17 @@ fn axis_degree_diff(prev_angles: &mut Vector3<f32>, mut accel: Vector3<f32>, gyr
     gyro_angles
         .iter()
         .enumerate()
-        .zip(accel_angles.iter())   
+        .zip(accel_angles.iter())
         .for_each(|((i, &acc), &gyro)| {
-            prev_angles[i] = compliment_filter(
-                1.0 - (0.04 - accel_axis_len / 100.0),
-                (gyro, acc),
-            )
+            prev_angles[i] = compliment_filter(1.0 - (0.04 - accel_axis_len / 100.0), (gyro, acc))
         });
-        
 }
 
 #[embassy_executor::task]
-pub async fn orient_calc(mut mems: impl glue::mems::Mems + 'static, sender: Sender<'static, NoopRawMutex, Vector3<f32>, 1>) {
+pub async fn orient_calc(
+    mut mems: impl glue::mems::Mems + 'static,
+    sender: Sender<'static, NoopRawMutex, Vector3<f32>, 1>,
+) {
     // #[embassy_executor::task]
     // async fn orient_calc(p: impl) {
 
