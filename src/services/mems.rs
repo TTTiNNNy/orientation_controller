@@ -2,6 +2,7 @@ use core::future::poll_fn;
 use core::task::Poll;
 
 use defmt::{trace};
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Sender};
 use embassy_time::{Instant, Timer};
 use nalgebra::Vector3;
 use libm::sqrtf;
@@ -51,7 +52,7 @@ fn axis_degree_diff(prev_angles: &mut Vector3<f32>, mut accel: Vector3<f32>, gyr
 }
 
 #[embassy_executor::task]
-pub async fn orient_calc(mut mems: impl glue::mems::Mems + 'static) {
+pub async fn orient_calc(mut mems: impl glue::mems::Mems + 'static, sender: Sender<'static, NoopRawMutex, Vector3<f32>, 1>) {
     // #[embassy_executor::task]
     // async fn orient_calc(p: impl) {
 
@@ -85,6 +86,7 @@ pub async fn orient_calc(mut mems: impl glue::mems::Mems + 'static) {
                     mems_data.gyr[2]
                 );
                 trace!("x: {},\ty: {},\tz: {}", angles[0], angles[1], angles[2]);
+                sender.send(angles.clone()).await;
 
                 Timer::after_millis(1).await;
             }

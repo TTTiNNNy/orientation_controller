@@ -23,7 +23,6 @@ struct DShot <const time: Freq, T: embedded_hal::digital::OutputPin>{
         fn build_package(&self, payload: u16) -> u16 { payload << 5 + crc(&payload) }
     }
 
-
 impl <const TIME: Freq, T:  embedded_hal::digital::OutputPin> EscApi for DShot<TIME, T>{
     async fn set_power(&mut self, power_percent: u8){
         const MAX_GRAD_SIZE: u16 = 2000;
