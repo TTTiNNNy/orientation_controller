@@ -7,10 +7,7 @@ use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Sender};
 use embassy_time::{Instant, Timer};
 use libm::sqrtf;
 use nalgebra::Vector3;
-
-fn compliment_filter(c: f32, pair_values: (f32, f32)) -> f32 {
-    (pair_values.0 * c) + (pair_values.1 * (1.0 - c))
-}
+use crate::utils::comp_fltr::compliment_filter;
 
 fn axis_degree_diff(
     prev_angles: &mut Vector3<f32>,
