@@ -1,54 +1,11 @@
 use core::{borrow::Borrow, marker::ConstParamTy};
 use embassy_nrf::pwm::{Instance, Prescaler, SimplePwm};
+use crate::services::esc::pwm::{ModeInfo, PwmInfo};
 
-struct Pwm<'a, T: Instance> {
-    channel: usize,
-    pwm: SimplePwm<'a, T>,
-    info: ModeInfo,
-}
-enum Mode {
-    Pwm,
-    OnShot125,
-    OnShot42,
-    Multishot,
-}
-
-#[derive(ConstParamTy, PartialEq, Eq, Clone)]
-pub struct ModeInfo {
-    pub min_us: u16,
-    pub max_us: u16,
-    pub freq_hz: u16,
-}
-
-impl ModeInfo {
-    pub fn new(mode: Mode) -> Self {
-        match mode {
-            Mode::Pwm => ModeInfo {
-                freq_hz: 490,
-                min_us: 1000,
-                max_us: 2000,
-            },
-            Mode::OnShot125 => ModeInfo {
-                freq_hz: 3900,
-                min_us: 125,
-                max_us: 250,
-            },
-            Mode::OnShot42 => ModeInfo {
-                freq_hz: 11900,
-                min_us: 42,
-                max_us: 84,
-            },
-            Mode::Multishot => ModeInfo {
-                freq_hz: 31900,
-                min_us: 5,
-                max_us: 25,
-            },
-        }
-    }
-}
-
-pub trait PwmInfo {
-    fn get_info(&self) -> ModeInfo;
+pub struct Pwm<'a, T: Instance> {
+    pub channel: usize,
+    pub pwm: SimplePwm<'a, T>,
+    pub info: ModeInfo,
 }
 
 impl<T: Instance> PwmInfo for Pwm<'_, T> {

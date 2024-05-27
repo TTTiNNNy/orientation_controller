@@ -6,8 +6,10 @@ use {defmt_rtt as _, panic_probe as _};
 use bsp::glue;
 use cortex_m::asm;
 use cortex_m_rt::entry;
+use embassy_nrf::pwm::SimplePwm;
 use embassy_nrf::twim::{self, Twim};
 use libm::{fabs, fabsf, pow, sqrt, sqrtf};
+use orientation_controller::services::esc::pwm::{ModeInfo, Pwm, PwmInfo};
 use orientation_controller::{bsp, services};
 
 use core::borrow::Borrow;
@@ -23,19 +25,27 @@ use embassy_nrf::gpio::{Level, Output, OutputDrive};
 
 use embassy_nrf::{bind_interrupts, peripherals, spim, Peripheral};
 use nalgebra::{self, UnitVector3, Vector3};
-
+use crate::services::esc::pwm;
 use icm20948_async;
 
 bind_interrupts!(struct Irqs {
     SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;
 });
 
+// fn qwe(qwe:  SimplePwm<peripherals::PWM0>) -> {
+//     pwm::Pwm::new(Pwm::)
+// }
+
 #[embassy_executor::main]
 async fn init(spawner: Spawner) {
     Timer::after_ticks(100).await;
-
+    
     let p: embassy_nrf::Peripherals = embassy_nrf::init(Default::default());
     let config = twim::Config::default();
+    let pw: SimplePwm<peripherals::PWM0> = SimplePwm::new_1ch(p.PWM0, p.P0_05);
+    let inf = ModeInfo::ON_SHOT42;
+    let q = glue::pwm::Pwm{channel: 0, pwm: pw, info: inf};
+    let pwm = Pwm::new(q);
 
     let mut twi: Twim<'_, peripherals::TWISPI0> =
         Twim::new(p.TWISPI0, Irqs, p.P0_26, p.P0_31, config);
