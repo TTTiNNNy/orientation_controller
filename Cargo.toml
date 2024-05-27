@@ -112,3 +112,16 @@ pid = "4.0.0"
 
 [profile.release]
 debug = true
+
+[features]
+icm-20948 = []
+
+pwm = []
+oneshot-125 = []
+oneshot-42 = []
+multishot = []
+#DShot150
+#DShot150
+#DShot150
+#DShot150
+which-C = []
