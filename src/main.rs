@@ -9,7 +9,7 @@ use cortex_m_rt::entry;
 use embassy_nrf::pwm::SimplePwm;
 use embassy_nrf::twim::{self, Twim};
 use libm::{fabs, fabsf, pow, sqrt, sqrtf};
-use orientation_controller::services::esc::pwm::{ModeInfo, Pwm, PwmInfo};
+use orientation_controller::services::esc::pwm::{ModeInfo};
 use orientation_controller::{bsp, services};
 
 use core::borrow::Borrow;
@@ -17,7 +17,7 @@ use core::future::poll_fn;
 use core::task::Poll;
 use core::time;
 
-use defmt::{dbg, debug, info, trace, unwrap, warn};
+use defmt::{dbg, debug, info, println, trace, unwrap, warn};
 use embassy_executor::Spawner;
 use embassy_time::{Instant, Timer};
 
@@ -42,10 +42,21 @@ async fn init(spawner: Spawner) {
     
     let p: embassy_nrf::Peripherals = embassy_nrf::init(Default::default());
     let config = twim::Config::default();
-    let pw: SimplePwm<peripherals::PWM0> = SimplePwm::new_1ch(p.PWM0, p.P0_05);
+
+    //let escs;
+
+
+    let pw: SimplePwm<peripherals::PWM0> = SimplePwm::new_4ch(p.PWM0, p.P0_05,  p.P0_06,  p.P0_07,  p.P0_08);
+
     let inf = ModeInfo::ON_SHOT42;
-    let q = glue::pwm::Pwm{channel: 0, pwm: pw, info: inf};
-    let pwm = Pwm::new(q);
+    pw.set_period(inf.freq_hz.into());
+
+    let q = glue::pwm::Pwm{pwm: pw, info: inf};
+    //escs = Pwm::new(q);
+    
+    #[cfg(feature = "pwm")] {
+
+    }
 
     let mut twi: Twim<'_, peripherals::TWISPI0> =
         Twim::new(p.TWISPI0, Irqs, p.P0_26, p.P0_31, config);

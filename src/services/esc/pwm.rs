@@ -40,32 +40,3 @@ impl ModeInfo {
         max_us: 25,
     };
 }
-
-pub trait PwmInfo {
-    fn get_info(&self) -> ModeInfo;
-}
-
-
-
-
-#[derive(ConstParamTy, PartialEq, Eq)]
-pub struct Pwm<T: embedded_hal::pwm::SetDutyCycle + PwmInfo> {
-    output: T,
-}
-
-impl<T: embedded_hal::pwm::SetDutyCycle + PwmInfo> Pwm<T> {
-    pub fn new(pin_out: T) -> Self {
-        Self { output: pin_out }
-    }
-}
-
-impl<T: embedded_hal::pwm::SetDutyCycle + PwmInfo> EscApi for Pwm<T> {
-    async fn set_power(&mut self, power_percent: u8) {
-        self.output.set_duty_cycle(
-            self.output.get_info().min_us
-                + (power_percent as u16
-                    * (self.output.get_info().max_us - self.output.get_info().min_us))
-                    / 100,
-        );
-    }
-}

@@ -37,7 +37,7 @@ pub async fn pid(
     orientation_angles_receiver: Receiver<'static, NoopRawMutex, Vector3<f32>, 1>,
     power_receiver: Receiver<'static, NoopRawMutex, u8, 1>,
 
-    xxyy: impl EscApi + Clone + 'static,
+    mut xxyy: impl EscApi + 'static,
 ) {
     match deviceType {
     CopterType::Quadro => {
@@ -51,10 +51,10 @@ pub async fn pid(
         pid_x.i(5.0, 35.0);
         pid_x.d(1.0, 10.0);
 
-        let mut xpyp = xxyy.clone();
-        let mut xpyn = xxyy.clone();
-        let mut xnyn = xxyy.clone();
-        let mut xnyp = xxyy.clone();
+        let mut xpyp = 0;
+        let mut xpyn = 1;
+        let mut xnyn = 2;
+        let mut xnyp = 3;
 
         let mut control_angles = control_angles_receiver.receive().await;
         let mut orientation_angles = orientation_angles_receiver.receive().await;
@@ -69,10 +69,10 @@ pub async fn pid(
 
             let xy_out = compliment_filter(ratio_xy, (x_out, y_out));
             
-            xpyp.set_power(power + compliment_filter(ratio_xy, (x_out, y_out)) as u8);
-            xpyn.set_power(power + compliment_filter(ratio_xy, (x_out, - y_out)) as u8);
-            xnyn.set_power(power + compliment_filter(ratio_xy, (- x_out, - y_out)) as u8);
-            xnyp.set_power(power + compliment_filter(ratio_xy, (- x_out, y_out)) as u8);
+            xxyy.set_power(xpyp, power + compliment_filter(ratio_xy, (x_out, y_out)) as u8);
+            xxyy.set_power(xpyn, power + compliment_filter(ratio_xy, (x_out, - y_out)) as u8);
+            xxyy.set_power(xnyn, power + compliment_filter(ratio_xy, (- x_out, - y_out)) as u8);
+            xxyy.set_power(xnyp, power + compliment_filter(ratio_xy, (- x_out, y_out)) as u8);
 
             orientation_angles_receiver.receive().await;
 

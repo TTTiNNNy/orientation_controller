@@ -1,4 +1,5 @@
 use core::{borrow::Borrow, marker::ConstParamTy};
+use embassy_sync::channel;
 use embassy_time::Timer;
 
 use crate::services::esc::api::EscApi;
@@ -26,7 +27,7 @@ impl<const TIME: Freq, T: embedded_hal::digital::OutputPin> DShot<TIME, T> {
 }
 
 impl<const TIME: Freq, T: embedded_hal::digital::OutputPin> EscApi for DShot<TIME, T> {
-    async fn set_power(&mut self, power_percent: u8) {
+    async fn set_power(&mut self, channel: u8, power_percent: u8) {
         const MAX_GRAD_SIZE: u16 = 2000;
         const BIT_NS_BASE_PERIOD_TIME: u16 = 6670;
         const BIT_NS_BASE_RAISE_TIME: u16 = 5000;
