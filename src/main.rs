@@ -46,24 +46,24 @@ async fn init(spawner: Spawner) {
     //let escs;
 
 
-    let pw: SimplePwm<peripherals::PWM0> = SimplePwm::new_4ch(p.PWM0, p.P0_05,  p.P0_06,  p.P0_07,  p.P0_08);
+    let pwm_hw: SimplePwm<peripherals::PWM0> = SimplePwm::new_4ch(p.PWM0, p.P0_05,  p.P0_06,  p.P0_07,  p.P0_08);
 
     let esc;
 
     #[cfg(feature = "pwm")] {
-        esc = glue::pwm::Pwm::new(pw, ModeInfo::PWM );
+        esc = glue::pwm::Pwm::new(pwm_hw, ModeInfo::PWM );
     }
 
     #[cfg(feature = "onshot-125")] {
-        esc = glue::pwm::Pwm::new(pw, ModeInfo::ONSHOT125 );
+        esc = glue::pwm::Pwm::new(pwm_hw, ModeInfo::ONSHOT125 );
     }
 
     #[cfg(feature = "onshot-42")] {
-        esc = glue::pwm::Pwm::new(pw, ModeInfo::ONSHOT42 );
+        esc = glue::pwm::Pwm::new(pwm_hw, ModeInfo::ONSHOT42 );
     }
 
     #[cfg(feature = "multishot")] {
-        esc = glue::pwm::Pwm::new(pw, ModeInfo::MULTISHOT );
+        esc = glue::pwm::Pwm::new(pwm_hw, ModeInfo::MULTISHOT );
     }
 
     let mut twi: Twim<'_, peripherals::TWISPI0> =
