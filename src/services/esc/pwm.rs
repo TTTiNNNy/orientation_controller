@@ -22,13 +22,13 @@ impl ModeInfo {
         max_us: 2000,
     };
 
-    pub const ON_SHOT125: ModeInfo =  ModeInfo {
+    pub const ONSHOT125: ModeInfo =  ModeInfo {
         freq_hz: 3900,
         min_us: 125,
         max_us: 250,
     };
     
-    pub const ON_SHOT42: ModeInfo = ModeInfo {
+    pub const ONSHOT42: ModeInfo = ModeInfo {
         freq_hz: 11900,
         min_us: 42,
         max_us: 84,

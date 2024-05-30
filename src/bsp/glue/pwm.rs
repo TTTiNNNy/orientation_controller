@@ -3,9 +3,18 @@ use embassy_nrf::pwm::{Instance, Prescaler, SimplePwm};
 use crate::services::esc::{api::EscApi, pwm::{ModeInfo}};
 
 pub struct Pwm<'a, T: Instance> {
-    pub pwm: SimplePwm<'a, T>,
-    pub info: ModeInfo,
+    pwm: SimplePwm<'a, T>,
+    info: ModeInfo,
 }
+
+impl <'a, T: Instance> Pwm<'a, T>{
+    pub fn new(    
+        pwm: SimplePwm<'a, T>, info: ModeInfo) -> Self{
+        pwm.set_period(info.freq_hz.into());
+        Self{pwm: pwm, info}
+    }
+}
+
 
 impl <T: Instance>EscApi for Pwm<'_, T>{
     async fn set_power(&mut self, channel: u8, power_percent: u8) {
