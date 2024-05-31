@@ -81,7 +81,7 @@ embassy-nrf = { version = "0.1.0", path = "../embassy/embassy-nrf", features = [
 embassy-net = { version = "0.4.0", path = "../embassy/embassy-net", features = ["defmt", "tcp", "dhcpv4", "medium-ethernet"] }
 embassy-usb = { version = "0.1.0", path = "../embassy/embassy-usb", features = ["defmt"] }
 embedded-io = { version = "0.6.0", features = ["defmt-03"]  }
-embedded-io-async = { version = "0.6.1", features = ["defmt-03"] }
+embedded-io-async = { version = "0.6.1" }
 embassy-net-esp-hosted = { version = "0.1.0", path = "../embassy/embassy-net-esp-hosted", features = ["defmt"] }
 embassy-net-enc28j60 = { version = "0.1.0", path = "../embassy/embassy-net-enc28j60", features = ["defmt"] }
 
